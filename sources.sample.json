@@ -1,0 +1,34 @@
+[
+  {
+    "id": "desaparecidos-demo",
+    "type": "csv",
+    "category": "desaparecido",
+    "path": "sample_data/desaparecidos.csv",
+    "link": "https://ejemplo-desaparecidos.com",
+    "map": {
+      "nombre": "nombre",
+      "cedula": "cedula",
+      "edad": "edad",
+      "genero": "genero",
+      "ubicacion": "ultima_ubicacion",
+      "estatus": "estatus",
+      "fecha": "fecha"
+    }
+  },
+  {
+    "id": "siviv-demo",
+    "type": "csv",
+    "category": "hospital",
+    "path": "sample_data/hospital.csv",
+    "link": "https://siviv.pages.dev",
+    "map": {
+      "nombre": "nombre",
+      "cedula": "cedula",
+      "edad": "edad",
+      "genero": "genero",
+      "ubicacion": "centro_salud",
+      "estatus": "estatus",
+      "fecha": "fecha"
+    }
+  }
+]

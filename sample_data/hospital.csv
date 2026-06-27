@@ -1,0 +1,6 @@
+nombre,cedula,edad,genero,centro_salud,estatus,fecha
+Maria Fernanda Gonzalez,12345678,34,Femenino,Hospital Universitario de Caracas,ingresado,2026-06-25
+Pedro Pablo Marquez,30222111,45,Masculino,Clínica El Ávila,ingresado,2026-06-24
+Luis Alberto Rodriguez,,28,Masculino,Hospital Vargas,ingresado,2026-06-25
+Carmen T. Diaz,9111222,61,Femenino,Hospital Domingo Luciani,estable,2026-06-26
+Gabriela Mendoza Ruiz,40111888,23,Femenino,Hospital Pérez Carreño,ingresado,2026-06-26

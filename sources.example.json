@@ -1,0 +1,22 @@
+[
+  {
+    "id": "siviv",
+    "type": "supabase",
+    "category": "hospital",
+    "url": "https://bcmuwbzepqfztxpdikux.supabase.co",
+    "anon_key": "PENDIENTE__clave_de_solo_lectura",
+    "table": "PENDIENTE__nombre_de_la_tabla",
+    "link": "https://siviv.pages.dev/",
+    "disabled": true,
+    "_nota": "Copia este archivo a sources.json (gitignored) y completa anon_key + table; ajusta el 'map' a las columnas reales y quita disabled.",
+    "map": {
+      "nombre": "nombre",
+      "cedula": "cedula",
+      "edad": "edad",
+      "genero": "genero",
+      "ubicacion": "centro_salud",
+      "estatus": "estatus",
+      "fecha": "fecha"
+    }
+  }
+]

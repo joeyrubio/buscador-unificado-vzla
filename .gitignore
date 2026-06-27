@@ -1,0 +1,10 @@
+# Datos generados o sensibles — NUNCA commitear (puede contener data real de víctimas)
+web/data.json
+sources.json
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
