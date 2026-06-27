@@ -44,7 +44,7 @@ si **dos o más** coinciden, la damos por **ubicada al 100%**.
 
 **Para sumarte:** abre un PR agregando tu archivo en `sources.d/` (instrucciones
 paso a paso en **Integra tu plataforma**, más abajo), o escríbenos.
-Dudas: **[tu nombre / contacto]**.
+Dudas: **Joel Rubio — IG [@joelrubios](https://instagram.com/joelrubios)**.
 
 ## 🔄 Frescura de los datos
 
