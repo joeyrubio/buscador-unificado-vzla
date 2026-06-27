@@ -18,7 +18,7 @@ def P(cat, nombre, cedula="", edad="", **kw):
 def test_misma_cedula_se_unifica_en_un_registro():
     people = [
         P("desaparecido", "Maria F Gonzalez", "12345678", 34, source="desap"),
-        P("hospital", "M. Gonzalez", "12345678", 34, source="siviv", ubicacion="HUC", estatus="ingresado"),
+        P("hospital", "M. Gonzalez", "12345678", 34, source="hospital-demo", ubicacion="HUC", estatus="ingresado"),
     ]
     u = build_unified(people)
     assert len(u) == 1
@@ -28,20 +28,20 @@ def test_misma_cedula_se_unifica_en_un_registro():
 def test_genera_alerta_alta_desaparecido_en_hospital():
     people = [
         P("desaparecido", "Carmen Diaz", "9111222", 61, source="desap"),
-        P("hospital", "Carmen Diaz", "9111222", 61, source="siviv", ubicacion="Luciani", estatus="estable"),
+        P("hospital", "Carmen Diaz", "9111222", 61, source="hospital-demo", ubicacion="Luciani", estatus="estable"),
     ]
     u = build_unified(people)
     assert u[0]["alerta"]["nivel"] == "alta"
 
 
 def test_export_publico_no_incluye_cedula():
-    people = [P("hospital", "Juan Perez", "11222333", 40, source="siviv")]
+    people = [P("hospital", "Juan Perez", "11222333", 40, source="hospital-demo")]
     u = build_unified(people)                       # por defecto: público, sin cédula
     assert "11222333" not in str(u)
 
 
 def test_export_con_cedula_la_incluye_para_busqueda():
-    people = [P("hospital", "Juan Perez", "11222333", 40, source="siviv")]
+    people = [P("hospital", "Juan Perez", "11222333", 40, source="hospital-demo")]
     u = build_unified(people, include_cedula=True)  # modo búsqueda exacta
     assert u[0].get("cedula") == "11222333"
 
@@ -49,7 +49,7 @@ def test_export_con_cedula_la_incluye_para_busqueda():
 def test_personas_distintas_no_se_mezclan():
     people = [
         P("desaparecido", "Ana Lopez", "1", 20, source="desap"),
-        P("hospital", "Pedro Gomez", "2", 50, source="siviv"),
+        P("hospital", "Pedro Gomez", "2", 50, source="hospital-demo"),
     ]
     u = build_unified(people)
     assert len(u) == 2

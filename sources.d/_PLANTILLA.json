@@ -1,0 +1,25 @@
+{
+  "_como_usar": "Copia este archivo a sources.d/tu-plataforma.json y llénalo. Borra los campos con guion bajo. Elige el bloque segun tu tipo (supabase/gsheet/rest/csv). El cargador IGNORA los archivos que empiezan con guion bajo.",
+
+  "id": "tu-plataforma",
+  "type": "rest",
+  "category": "desaparecido",
+  "link": "https://tu-plataforma.com/",
+
+  "_supabase": { "type": "supabase", "url": "https://xxxx.supabase.co", "anon_key": "TU_ANON_KEY_DE_SOLO_LECTURA", "table": "personas" },
+  "_gsheet":   { "type": "gsheet", "sheet_id": "ID_DE_LA_HOJA", "sheet_name": "Hoja1" },
+  "_rest":     { "type": "rest", "url": "https://tu-plataforma.com/api/personas", "skip_if": { "oculto": true } },
+  "_csv":      { "type": "csv", "path": "sample_data/tu_export.csv" },
+
+  "_category_opciones": "desaparecido | hospital | localizado",
+
+  "map": {
+    "nombre": "NOMBRE_DE_TU_COLUMNA",
+    "cedula": "TU_COLUMNA_O_DEJA_VACIO",
+    "edad": "TU_COLUMNA_O_DEJA_VACIO",
+    "genero": "TU_COLUMNA_O_DEJA_VACIO",
+    "ubicacion": "TU_COLUMNA",
+    "estatus": "TU_COLUMNA",
+    "fecha": "TU_COLUMNA_O_DEJA_VACIO"
+  }
+}

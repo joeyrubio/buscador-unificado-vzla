@@ -1,0 +1,17 @@
+{
+  "id": "desaparecidosvenezuela",
+  "type": "rest",
+  "category": "desaparecido",
+  "url": "https://www.desaparecidosvenezuela.com/api/personas",
+  "link": "https://www.desaparecidosvenezuela.com/",
+  "skip_if": { "oculto": true },
+  "map": {
+    "nombre": "nombre",
+    "cedula": "",
+    "edad": "edad",
+    "genero": "",
+    "ubicacion": "zona",
+    "estatus": "estado",
+    "fecha": "createdAt"
+  }
+}

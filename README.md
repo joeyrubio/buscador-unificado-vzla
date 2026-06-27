@@ -42,17 +42,18 @@ si **dos o más** coinciden, la damos por **ubicada al 100%**.
 - Respetamos lo que marques como **oculto/privado**.
 - Eliminación o corrección **a pedido**, al instante.
 
-**Para sumarte:** mándanos los datos de arriba o abre un PR agregando tu entrada
-en [`sources.example.json`](sources.example.json) con tu `map` de columnas.
+**Para sumarte:** abre un PR agregando tu archivo en `sources.d/` (instrucciones
+paso a paso en **Integra tu plataforma**, más abajo), o escríbenos.
 Dudas: **[tu nombre / contacto]**.
 
 ## 🔄 Frescura de los datos
 
 El buscador re-lee el estatus **en vivo** de cada fuente en cada corrida, así que
-mantenerlo al día es solo cuestión de re-ingerir seguido. El plan es un
-**GitHub Action** que ejecute la ingesta cada ~5 min y redepliegue.
-**Aún no está activado**: lo encenderemos cuando haya varias plataformas
-integradas (antes no aporta).
+mantenerlo al día es solo cuestión de re-ingerir seguido. Hay un GitHub Action
+listo en [`.github/workflows/refresco.yml`](.github/workflows/refresco.yml) que
+reingiere y redepliega, pero está **desactivado a propósito**: el bloque
+`schedule` está comentado. Para encenderlo, descoméntalo cuando haya varias
+plataformas integradas (antes no aporta).
 
 ## Correr
 
@@ -84,14 +85,59 @@ Busca en el buscador por **nombre, cédula, género y rango de edad**. Prueba
 - **desaparecidosvenezuela.com** (`rest`) — API público `/api/personas`, ~20
   desaparecidos. Se respeta el campo `oculto` (no se ingiere lo que la
   plataforma marcó como no público).
-- **siviv** (`supabase`, hospitales) — en espera del acceso de lectura.
 
-## Conectar una fuente real
+El lado **hospitales** aún no tiene plataformas integradas: cualquiera puede
+sumarse (ver guía de integración).
 
-1. `cp sources.example.json sources.json`  (sources.json está gitignored)
-2. Completa `anon_key`, `table` y ajusta `map` a las columnas reales.
-3. Quita `"disabled": true`.
-4. `python3 run.py --export web/data.json`
+## Integra tu plataforma (desarrolladores)
+
+Eres programador: no esperas a nadie. Tu plataforma se integra con **un archivo
+de config** — no una copia de tu data, solo dice *dónde* leerte y *cómo* se
+llaman tus columnas. Lo registras una vez; cuando tu base cambia, nosotros la
+releemos en vivo (no editas el archivo por cada actualización).
+
+1. Haz **fork** y clona el repo.
+2. Copia la plantilla:
+   `cp sources.d/_PLANTILLA.json sources.d/tu-plataforma.json`
+3. Llénala según tu `type`:
+
+   **Supabase** (la `anon_key` ya es pública, va en el archivo):
+   ```json
+   { "id": "tu-plataforma", "type": "supabase", "category": "desaparecido",
+     "url": "https://xxxx.supabase.co", "anon_key": "TU_ANON_KEY", "table": "personas",
+     "link": "https://tu-plataforma.com/",
+     "map": { "nombre": "nombre", "cedula": "cedula", "edad": "edad", "genero": "sexo",
+              "ubicacion": "zona", "estatus": "estado", "fecha": "created_at" } }
+   ```
+
+   **API REST propio** (un GET que devuelve la lista de personas):
+   ```json
+   { "id": "tu-plataforma", "type": "rest", "category": "desaparecido",
+     "url": "https://tu-plataforma.com/api/personas",
+     "link": "https://tu-plataforma.com/", "skip_if": { "oculto": true },
+     "map": { "nombre": "nombre", "edad": "edad", "ubicacion": "zona", "estatus": "estado" } }
+   ```
+
+   **Google Sheet** (compártela como "cualquiera con el link puede ver"):
+   ```json
+   { "id": "tu-plataforma", "type": "gsheet", "category": "hospital",
+     "sheet_id": "ID_DE_LA_HOJA", "sheet_name": "Hoja1",
+     "link": "https://docs.google.com/...",
+     "map": { "nombre": "Nombre", "cedula": "Cedula", "ubicacion": "Centro" } }
+   ```
+
+   - `category`: `desaparecido`, `hospital` o `localizado`.
+   - En `map`, deja en `""` los campos que no tengas (solo `nombre` es imprescindible).
+   - `skip_if`: descarta lo que marques como no público (ej. `{"oculto": true}`).
+   - Usa en `estatus` la palabra con la que marcas "ubicado" para propagar la buena noticia.
+
+4. Prueba local: `python3 run.py --export web/data.json` — deberías ver tu fuente
+   cargada y tus registros en el buscador (`cd web && python3 -m http.server 8777`).
+5. Abre un **PR**. Eso es todo.
+
+> Solo pongas credenciales **públicas de solo lectura** (la anon key de Supabase
+> ya viaja en tu frontend). Cualquier secreto real va en `sources.json` (local,
+> gitignored), nunca en `sources.d/`.
 
 ## Privacidad (innegociable)
 

@@ -1,0 +1,46 @@
+# Refresco automático del índice — LISTO PERO DESACTIVADO.
+#
+# Reingiere todas las fuentes (sources.d/*.json), regenera el índice público
+# (SIN cédula) y lo publica en GitHub Pages.
+#
+# Hoy solo corre manual (botón "Run workflow"). NO corre en automático: el
+# bloque `schedule` está comentado a propósito.
+#
+# PARA ACTIVARLO cuando haya varias plataformas integradas:
+#   1) Descomenta el bloque `schedule` de abajo.
+#   2) En Settings → Pages, elige "GitHub Actions" como fuente.
+name: Refresco del índice (desactivado)
+
+on:
+  workflow_dispatch:        # por ahora: solo manual
+  # schedule:
+  #   - cron: "*/5 * * * *"  # cada 5 minutos — DESCOMENTAR para activar
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Generar índice público (sin cédula)
+        run: python3 run.py --export web/data.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deploy
+        uses: actions/deploy-pages@v4
