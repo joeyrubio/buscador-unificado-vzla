@@ -9,11 +9,50 @@ Uso:
 import sys
 import os
 import json
+import glob
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from connectors import load_source          # noqa: E402
 from match import cross_match               # noqa: E402
 from aggregate import build_unified         # noqa: E402
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def load_sources(sample=False):
+    """Junta las fuentes desde:
+      - sources.d/*.json  (una por plataforma; COMMITEADAS — aquí contribuyes la tuya)
+      - sources.json      (overrides locales, gitignored, para claves/secretos)
+    Cada archivo puede ser un objeto o una lista. Se deduplica por 'id'
+    (gana el último, así sources.json local puede sobreescribir lo committeado).
+    Con --sample usa solo sources.sample.json.
+    """
+    if sample:
+        with open(os.path.join(HERE, "sources.sample.json"), encoding="utf-8") as f:
+            return json.load(f)
+
+    raw = []
+    for path in sorted(glob.glob(os.path.join(HERE, "sources.d", "*.json"))):
+        if os.path.basename(path).startswith("_"):   # plantillas: se ignoran
+            continue
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+            raw += data if isinstance(data, list) else [data]
+    local = os.path.join(HERE, "sources.json")
+    if os.path.exists(local):
+        with open(local, encoding="utf-8") as f:
+            data = json.load(f)
+            raw += data if isinstance(data, list) else [data]
+
+    ordered, seen = [], {}
+    for s in raw:
+        sid = s.get("id")
+        if sid in seen:
+            ordered[seen[sid]] = s
+        else:
+            seen[sid] = len(ordered)
+            ordered.append(s)
+    return ordered
 
 
 def load_all(sources):
@@ -68,12 +107,9 @@ def export(people, path, with_cedula=False):
 def main():
     argv = sys.argv
     sample = "--sample" in argv
-    here = os.path.dirname(os.path.abspath(__file__))
-    cfg_path = os.path.join(here, "sources.sample.json" if sample else "sources.json")
-    with open(cfg_path, encoding="utf-8") as f:
-        sources = json.load(f)
+    sources = load_sources(sample)
 
-    print("Cargando fuentes:")
+    print(f"Cargando {len(sources)} fuente(s):")
     people = load_all(sources)
     des = [p for p in people if p.category == "desaparecido"]
     hos = [p for p in people if p.category == "hospital"]
