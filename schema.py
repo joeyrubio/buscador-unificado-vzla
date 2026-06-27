@@ -53,6 +53,30 @@ def norm_genero(value) -> str:
     return ""
 
 
+def norm_estatus(value) -> str:
+    """Mapea el estatus libre de cada plataforma a un set común.
+
+    Devuelve: LOCALIZADO | BUSCADO | HOSPITAL | FALLECIDO | "" (desconocido).
+    El orden importa: 'no localizado' / 'sin localizar' = BUSCADO, no LOCALIZADO.
+    """
+    s = norm_name(value)
+    if not s:
+        return ""
+    if any(w in s for w in ("fallecid", "muert", "occis", "sin vida", "deceso")):
+        return "FALLECIDO"
+    if any(w in s for w in ("desaparec", "buscad", "sin localiz", "no localiz",
+                            "perdid", "extraviad", "se busca")):
+        return "BUSCADO"
+    if any(w in s for w in ("ubicad", "localizad", "encontrad", "a salvo",
+                            "rescatad", "aparecio", "hallad", "reunid")) \
+            or s in ("vivo", "viva", "sano", "sana"):
+        return "LOCALIZADO"
+    if any(w in s for w in ("ingresad", "hospitalizad", "internad", "en hospital",
+                            "estable", "critic", "herid", "atendid")):
+        return "HOSPITAL"
+    return ""
+
+
 def name_tokens(value) -> set:
     return set(norm_name(value).split())
 

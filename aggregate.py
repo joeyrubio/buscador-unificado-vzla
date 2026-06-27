@@ -3,16 +3,19 @@
 Junta a todas las personas de todas las fuentes en un índice único:
   - Deduplica (una persona que aparece en varias plataformas = un solo registro
     con varias "apariciones").
-  - Adjunta la ALERTA de cruce desaparecido <-> hospital.
-  - Exporta una versión para el buscador.
+  - Calcula UN estatus/alerta de cabecera por persona, con esta prioridad:
+      1. localizado_confirmado : 2+ plataformas la marcan ubicada -> ubicada al 100%.
+      2. alta                  : reportada desaparecida Y aparece en hospital (cédula).
+      3. localizado            : UNA plataforma la marca ubicada -> "Ubicada según X (verifica)".
+      4. posible               : coincidencia difusa (nombre+edad) con un hospital.
+      5. fallecido             : reportada como fallecida en una fuente (verifica).
+      (sin alerta = sigue buscada)
+  - Exporta una versión para el buscador. Por defecto SIN cédula ni teléfonos.
 
-PRIVACIDAD: por defecto el índice NO incluye cédula (`include_cedula=False`).
-La búsqueda por cédula (`include_cedula=True`) la incluye SOLO para permitir el
-match exacto; en un despliegue público con data real eso debe hacerse en un
-endpoint del servidor, no en un archivo estático (una cédula es de baja entropía
-y un hash sería reversible). Nunca se publican teléfonos.
+Somos SOLO LECTURA: no marcamos nada en la web de nadie. Pero mostramos la verdad
+más fresca cruzando todas las fuentes, y siempre enlazamos para verificar.
 """
-from schema import norm_name
+from schema import norm_name, norm_estatus
 from match import cross_match
 
 
@@ -29,9 +32,37 @@ def _aparicion(p):
         "categoria": p.category,
         "ubicacion": p.ubicacion,
         "estatus": p.estatus,
+        "estatus_norm": norm_estatus(p.estatus),
         "fecha": p.fecha,
         "link": p.link,
     }
+
+
+def _alerta(rec, cross_alta, cross_pos):
+    """Aplica la prioridad de estatus de cabecera (ver docstring del módulo)."""
+    aps = rec["apariciones"]
+    locs = [a for a in aps if a["estatus_norm"] == "LOCALIZADO"]
+    fuentes_loc = {a["fuente"] for a in locs}
+    falls = [a for a in aps if a["estatus_norm"] == "FALLECIDO"]
+
+    if len(fuentes_loc) >= 2:
+        return {"nivel": "localizado_confirmado",
+                "texto": f"✅ Ubicada — confirmada por {len(fuentes_loc)} plataformas"}
+    if cross_alta:
+        return cross_alta
+    if len(fuentes_loc) == 1:
+        a = locs[0]
+        return {"nivel": "localizado",
+                "texto": f"Ubicada según {a['fuente']} — verifica",
+                "link": a["link"]}
+    if cross_pos:
+        return cross_pos
+    if falls:
+        a = falls[0]
+        return {"nivel": "fallecido",
+                "texto": f"Reportada como fallecida en {a['fuente']} — verifica",
+                "link": a["link"]}
+    return None
 
 
 def build_unified(people, include_cedula=False):
@@ -39,17 +70,13 @@ def build_unified(people, include_cedula=False):
     for p in people:
         groups.setdefault(_identity(p), []).append(p)
 
-    unified = []
-    rec_by_key = {}
+    recs = []           # [(key, rec, members)]
+    cross_alta = {}     # key -> alerta dict (cruce por cédula: desaparecido+hospital)
     for key, members in groups.items():
-        nombre = max((m.nombre for m in members), key=len, default="")
-        edad = next((m.edad for m in members if m.edad), "")
-        genero = next((m.genero for m in members if m.genero), "")
-        cats = {m.category for m in members}
         rec = {
-            "nombre": nombre,
-            "edad": edad,
-            "genero": genero,
+            "nombre": max((m.nombre for m in members), key=len, default=""),
+            "edad": next((m.edad for m in members if m.edad), ""),
+            "genero": next((m.genero for m in members if m.genero), ""),
             "apariciones": [_aparicion(m) for m in members],
             "alerta": None,
         }
@@ -57,28 +84,31 @@ def build_unified(people, include_cedula=False):
             ced = next((m.cedula for m in members if m.cedula), "")
             if ced:
                 rec["cedula"] = ced
-        # ALERTA ALTA: la misma persona (misma cédula/identidad) está reportada
-        # como desaparecida Y aparece en un hospital.
+        cats = {m.category for m in members}
         if "desaparecido" in cats and "hospital" in cats:
             hosp = next(m for m in members if m.category == "hospital")
-            rec["alerta"] = {
+            cross_alta[key] = {
                 "nivel": "alta",
                 "texto": f"Reportada desaparecida y APARECE en hospital: "
                          f"{hosp.ubicacion or '—'} ({hosp.estatus or 's/d'})",
+                "link": hosp.link,
             }
-        unified.append(rec)
-        rec_by_key[key] = rec
+        recs.append((key, rec, members))
 
-    # ALERTA POSIBLE: cruce difuso por nombre+edad para los que NO traían cédula
-    # (no se autoagruparon arriba).
+    # Cruce difuso (nombre+edad) para los desaparecidos SIN cédula.
+    cross_pos = {}
     des = [p for p in people if p.category == "desaparecido" and not p.cedula]
     hos = [p for p in people if p.category == "hospital"]
     for m in cross_match(des, hos):
-        rec = rec_by_key.get(_identity(m.desaparecido))
-        if rec and not rec["alerta"]:
-            rec["alerta"] = {
-                "nivel": "posible",
-                "texto": f"POSIBLE coincidencia en hospital: "
-                         f"{m.hospital.ubicacion or '—'} ({m.hospital.estatus or 's/d'}) — {m.motivo}",
-            }
-    return unified
+        cross_pos.setdefault(_identity(m.desaparecido), {
+            "nivel": "posible",
+            "texto": f"POSIBLE coincidencia en hospital: "
+                     f"{m.hospital.ubicacion or '—'} ({m.hospital.estatus or 's/d'}) — {m.motivo}",
+            "link": m.hospital.link,
+        })
+
+    out = []
+    for key, rec, members in recs:
+        rec["alerta"] = _alerta(rec, cross_alta.get(key), cross_pos.get(key))
+        out.append(rec)
+    return out

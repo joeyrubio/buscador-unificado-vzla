@@ -56,6 +56,29 @@ def test_personas_distintas_no_se_mezclan():
     assert all(r["alerta"] is None for r in u)
 
 
+def test_una_fuente_ubicado_dice_segun():
+    people = [P("desaparecido", "Ana Lopez", "1", 30, estatus="ubicado", source="plataA", link="http://a")]
+    u = build_unified(people)
+    assert u[0]["alerta"]["nivel"] == "localizado"
+    assert "plataA" in u[0]["alerta"]["texto"] and u[0]["alerta"]["link"] == "http://a"
+
+
+def test_dos_fuentes_ubicado_confirma_al_cien():
+    people = [
+        P("desaparecido", "Ana Lopez", "1", 30, estatus="ubicada", source="plataA"),
+        P("desaparecido", "Ana Lopez", "1", 30, estatus="encontrada", source="plataB"),
+    ]
+    u = build_unified(people)
+    assert u[0]["alerta"]["nivel"] == "localizado_confirmado"
+
+
+def test_no_localizado_no_es_ubicado():
+    # 'sin localizar' / 'no localizado' = sigue buscada, NO ubicada
+    people = [P("desaparecido", "Ana Lopez", "1", 30, estatus="sin localizar", source="plataA")]
+    u = build_unified(people)
+    assert u[0]["alerta"] is None
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0
