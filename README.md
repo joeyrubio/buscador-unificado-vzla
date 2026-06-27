@@ -27,11 +27,18 @@ Busca en el buscador por **nombre, cédula, género y rango de edad**. Prueba
 | Archivo | Rol |
 |---|---|
 | `schema.py` | Formato común (`Person`) + normalización de cédula, nombre, género, edad |
-| `connectors.py` | Lectores **Supabase / Google Sheet / CSV** (solo lectura) |
+| `connectors.py` | Lectores **Supabase / Google Sheet / CSV / REST** (solo lectura) |
 | `match.py` | Cruce: **cédula** = alta; **nombre+edad** = posible (conservador) |
 | `aggregate.py` | Unifica apariciones, genera alertas, exporta índice |
 | `run.py` | Orquesta todo |
 | `web/` | Buscador web estático (nombre · cédula · género · edad) |
+
+## Fuentes reales conectadas
+
+- **desaparecidosvenezuela.com** (`rest`) — API público `/api/personas`, ~20
+  desaparecidos. Se respeta el campo `oculto` (no se ingiere lo que la
+  plataforma marcó como no público).
+- **siviv** (`supabase`, hospitales) — en espera del acceso de lectura.
 
 ## Conectar una fuente real
 

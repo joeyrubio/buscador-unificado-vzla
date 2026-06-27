@@ -94,7 +94,7 @@ function apply(){
 
   const out = DATA.filter(p => {
     if (terms.length && !terms.every(t => p._n.includes(t))) return false;
-    if (qc && p._c !== qc) return false;
+    if (qc && !p._c.includes(qc)) return false;
     if (qg && p.genero !== qg) return false;
     if (!isNaN(emin) && (p._e===null || p._e < emin)) return false;
     if (!isNaN(emax) && (p._e===null || p._e > emax)) return false;

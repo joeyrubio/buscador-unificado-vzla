@@ -1,5 +1,23 @@
 [
   {
+    "id": "desaparecidosvenezuela",
+    "type": "rest",
+    "category": "desaparecido",
+    "url": "https://www.desaparecidosvenezuela.com/api/personas",
+    "link": "https://www.desaparecidosvenezuela.com/",
+    "_nota": "Conector REST genérico. skip_if descarta lo que la plataforma marcó como oculto.",
+    "skip_if": { "oculto": true },
+    "map": {
+      "nombre": "nombre",
+      "cedula": "",
+      "edad": "edad",
+      "genero": "",
+      "ubicacion": "zona",
+      "estatus": "estado",
+      "fecha": "createdAt"
+    }
+  },
+  {
     "id": "siviv",
     "type": "supabase",
     "category": "hospital",
@@ -8,15 +26,10 @@
     "table": "PENDIENTE__nombre_de_la_tabla",
     "link": "https://siviv.pages.dev/",
     "disabled": true,
-    "_nota": "Copia este archivo a sources.json (gitignored) y completa anon_key + table; ajusta el 'map' a las columnas reales y quita disabled.",
+    "_nota": "Apenas toyoenohio pase el acceso: completar anon_key + table, ajustar map y quitar disabled.",
     "map": {
-      "nombre": "nombre",
-      "cedula": "cedula",
-      "edad": "edad",
-      "genero": "genero",
-      "ubicacion": "centro_salud",
-      "estatus": "estatus",
-      "fecha": "fecha"
+      "nombre": "nombre", "cedula": "cedula", "edad": "edad", "genero": "genero",
+      "ubicacion": "centro_salud", "estatus": "estatus", "fecha": "fecha"
     }
   }
 ]
