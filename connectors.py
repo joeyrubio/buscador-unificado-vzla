@@ -81,7 +81,32 @@ def from_csv(cfg):
     return _rows_to_people(rows, cfg)
 
 
-LOADERS = {"supabase": from_supabase, "gsheet": from_gsheet, "csv": from_csv}
+def _rest_extract(data, cfg):
+    """Saca la lista de registros de una respuesta JSON y descarta los ocultos.
+
+    - list_path: ruta a la lista si viene anidada (ej. "data.items").
+    - skip_if: descarta registros que igualen estos campos (ej. {"oculto": true}),
+      para respetar lo que la plataforma marcó como NO público.
+    """
+    if cfg.get("list_path"):
+        for key in cfg["list_path"].split("."):
+            data = data.get(key, []) if isinstance(data, dict) else []
+    if isinstance(data, dict):
+        data = data.get("data") or data.get("results") or data.get("personas") or []
+    skip = cfg.get("skip_if", {})
+    return [r for r in data
+            if not any(str(r.get(k)).lower() == str(v).lower() for k, v in skip.items())]
+
+
+def from_rest(cfg):
+    """Lee un API REST JSON público (GET). Genérico y reutilizable entre sitios."""
+    headers = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
+    headers.update(cfg.get("headers", {}))
+    data = json.loads(_http_get(cfg["url"], headers))
+    return _rows_to_people(_rest_extract(data, cfg), cfg)
+
+
+LOADERS = {"supabase": from_supabase, "gsheet": from_gsheet, "csv": from_csv, "rest": from_rest}
 
 
 def load_source(cfg):
